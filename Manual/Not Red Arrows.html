@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="initial-scale=1">
+        <title>Not Red Arrows — Keep Talking and Nobody Explodes Module</title>
+        <link rel="stylesheet" type="text/css" href="css/font.css">
+        <link rel="stylesheet" type="text/css" href="css/normalize.css">
+        <link rel="stylesheet" type="text/css" href="css/main.css">
+        <script src="js/ktane-utils.js"></script>
+        <style>
+            br.doublebr { margin-bottom: 10pt; }
+            .page-footer::before { content: "Page "; }
+            .page-footer::after { content: " of ?"; }
+        </style>
+    </head>
+    <body>
+        <div class="section">
+            <div class="page page-bg-01">
+                <div class="page-header">
+                    <span class="page-header-doc-title">Keep Talking and Nobody Explodes Mod</span>
+                    <span class="page-header-section-title">Not Red Arrows</span>
+                </div>
+                <div class="page-content">
+                    <img src="img/Component/Red%20Arrows.svg" class="diagram">
+                    <h2>On the Subject of Not Red Arrows</h2>
+                    <p class="flavour-text">Pointer.</p>
+                    <p>On the module are 4 directional buttons, and a small screen in the middle.</p>
+                    <p>If the buttons are not Red, or the screen in the middle is not showing a two digit number, you're looking at a different module.</p>
+                    <p>On the screen is your Starting Number. The Up and Down buttons will change the number by 1, while the Left and Right will change the number by 10. To disarm the module, set the display to the number obtained from the instructions below, and tap the screen to submit. Submitting an incorrect number will generate a new Starting Number.</p>
+                    <hr>
+                    <p><code><strong>INNI:</strong><br>
+                        int startNumber = <strong>[The Starting Number];</strong><br>
+                        int key = startNumber<br>
+                        int lastDigit = <strong>[Last Digit of Serial Number]</strong>;<br>
+                        int tick = 0;<br>
+                        int totalCount = 0;<br>
+                        int correctNumber = 11;<br>
+                        int dunceCounter = 0;<br>
+                        bool trigger = TRUE;</code></p>
+                    <p><code>
+                        <strong>START:</strong><br>
+                        if (startNumber % 2 == 0) {<br>
+                        &MediumSpace; JMP S_E;<br>
+                        } else {<br>
+                        &MediumSpace; JMP S_O;<br>
+                        }
+                    </code></p>
+                </div>
+                <div class="page-footer relative-footer">1</div>
+            </div>
+            <div class="page page-bg-01">
+                <div class="page-header">
+                    <span class="page-header-doc-title">Keep Talking and Nobody Explodes Mod</span>
+                    <span class="page-header-section-title">Not Red Arrows</span>
+                </div>
+                <div class="page-content">
+                    <p><code><strong>S_E:</strong><br>
+                        if (key % 10 == lastDigit) {<br>
+                           &MediumSpace; trigger = false;<br>
+                           &MediumSpace; key = key - lastDigit;<br>
+                        } else if (key % 10 > lastDigit) {<br>
+                           &MediumSpace; key = (lastDigit + 2) * 7;<br>
+                        } else {<br>
+                           &MediumSpace; key = key + lastDigit;<br>
+                        }<br>
+                        JMP CNT_OB;
+                    </code></p>
+                    <p><code><strong>S_O:</strong><br>
+                        if (key % 10 == lastDigit) {<br>
+                            &MediumSpace; key = key - lastDigit;<br>
+                        } else if (key % 10 > lastDigit) {<br>
+                            &MediumSpace; key = (lastDigit - 2) * 5;<br>
+                            &MediumSpace; trigger = false;<br>
+                        } else {<br>
+                           &MediumSpace; key = 50 - key;<br>
+                        }<br>
+                        JMP CNT_OB;
+                    </code></p>
+                </div>
+                <div class="page-footer relative-footer">2</div>
+            </div>
+            <div class="page page-bg-01">
+                <div class="page-header">
+                    <span class="page-header-doc-title">Keep Talking and Nobody Explodes Mod</span>
+                    <span class="page-header-section-title">Not Red Arrows</span>
+                </div>
+                <div class="page-content">
+                    <p><code><strong>S_E:</strong><br>
+                        if (key % 10 == lastDigit) {<br>
+                           &MediumSpace; trigger = false;<br>
+                           &MediumSpace; key = key - lastDigit;<br>
+                        } else if (key % 10 > lastDigit) {<br>
+                           &MediumSpace; key = (lastDigit + 2) * 7;<br>
+                        } else {<br>
+                           &MediumSpace; key = key + lastDigit;<br>
+                        }<br>
+                        JMP CNT_OB;
+                    </code></p>
+                    <p><code><strong>S_O:</strong><br>
+                        if (key % 10 == lastDigit) {<br>
+                            &MediumSpace; key = key - lastDigit;<br>
+                        } else if (key % 10 > lastDigit) {<br>
+                            &MediumSpace; key = (lastDigit - 2) * 5;<br>
+                            &MediumSpace; trigger = false;<br>
+                        } else {<br>
+                           &MediumSpace; key = 50 - key;<br>
+                        }<br>
+                        JMP CNT_OB;
+                    </code></p>
+                </div>
+                <div class="page-footer relative-footer">3</div>
+            </div>
+            <div class="page page-bg-01">
+                <div class="page-header">
+                    <span class="page-header-doc-title">Keep Talking and Nobody Explodes Mod</span>
+                    <span class="page-header-section-title">Not Red Arrows</span>
+                </div>
+                <div class="page-content">
+                    <p><code><strong>S_E:</strong><br>
+                        if (key % 10 == lastDigit) {<br>
+                           &MediumSpace; trigger = false;<br>
+                           &MediumSpace; key = key - lastDigit;<br>
+                        } else if (key % 10 > lastDigit) {<br>
+                           &MediumSpace; key = (lastDigit + 2) * 7;<br>
+                        } else {<br>
+                           &MediumSpace; key = key + lastDigit;<br>
+                        }<br>
+                        JMP CNT_OB;
+                    </code></p>
+                    <p><code><strong>S_O:</strong><br>
+                        if (key % 10 == lastDigit) {<br>
+                            &MediumSpace; key = key - lastDigit;<br>
+                        } else if (key % 10 > lastDigit) {<br>
+                            &MediumSpace; key = (lastDigit - 2) * 5;<br>
+                            &MediumSpace; trigger = false;<br>
+                        } else {<br>
+                           &MediumSpace; key = 50 - key;<br>
+                        }<br>
+                        JMP CNT_OB;
+                    </code></p>
+                </div>
+                <div class="page-footer relative-footer">2</div>
+            </div>
+            <div class="page page-bg-01">
+                <div class="page-header">
+                    <span class="page-header-doc-title">Keep Talking and Nobody Explodes Mod</span>
+                    <span class="page-header-section-title">Not Red Arrows</span>
+                </div>
+                <div class="page-content">
+                    <p><code><strong>S_E:</strong><br>
+                        if (key % 10 == lastDigit) {<br>
+                           &MediumSpace; trigger = false;<br>
+                           &MediumSpace; key = key - lastDigit;<br>
+                        } else if (key % 10 > lastDigit) {<br>
+                           &MediumSpace; key = (lastDigit + 2) * 7;<br>
+                        } else {<br>
+                           &MediumSpace; key = key + lastDigit;<br>
+                        }<br>
+                        JMP CNT_OB;
+                    </code></p>
+                    <p><code><strong>S_O:</strong><br>
+                        if (key % 10 == lastDigit) {<br>
+                            &MediumSpace; key = key - lastDigit;<br>
+                        } else if (key % 10 > lastDigit) {<br>
+                            &MediumSpace; key = (lastDigit - 2) * 5;<br>
+                            &MediumSpace; trigger = false;<br>
+                        } else {<br>
+                           &MediumSpace; key = 50 - key;<br>
+                        }<br>
+                        JMP CNT_OB;
+                    </code></p>
+                </div>
+                <div class="page-footer relative-footer">2</div>
+            </div>
+            <div class="page page-bg-01">
+                <div class="page-header">
+                    <span class="page-header-doc-title">Keep Talking and Nobody Explodes Mod</span>
+                    <span class="page-header-section-title">Not Red Arrows</span>
+                </div>
+                <div class="page-content">
+                    <p><code><strong>S_E:</strong><br>
+                        if (key % 10 == lastDigit) {<br>
+                           &MediumSpace; trigger = false;<br>
+                           &MediumSpace; key = key - lastDigit;<br>
+                        } else if (key % 10 > lastDigit) {<br>
+                           &MediumSpace; key = (lastDigit + 2) * 7;<br>
+                        } else {<br>
+                           &MediumSpace; key = key + lastDigit;<br>
+                        }<br>
+                        JMP CNT_OB;
+                    </code></p>
+                    <p><code><strong>S_O:</strong><br>
+                        if (key % 10 == lastDigit) {<br>
+                            &MediumSpace; key = key - lastDigit;<br>
+                        } else if (key % 10 > lastDigit) {<br>
+                            &MediumSpace; key = (lastDigit - 2) * 5;<br>
+                            &MediumSpace; trigger = false;<br>
+                        } else {<br>
+                           &MediumSpace; key = 50 - key;<br>
+                        }<br>
+                        JMP CNT_OB;
+                    </code></p>
+                </div>
+                <div class="page-footer relative-footer">2</div>
+            </div>
+        </div>
+    </body>
+</html>
