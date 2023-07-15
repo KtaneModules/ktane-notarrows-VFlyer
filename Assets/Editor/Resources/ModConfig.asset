@@ -11,26 +11,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 615501dbe4f3fe94fbf4b564abb10237, type: 3}
   m_Name: ModConfig
   m_EditorClassIdentifier: 
-  id: redArrowsModule
-  title: Red Arrows
-  author: Kusane, eXish
-  description: 'A module where you use a 1-digit number to help guide you through
-    a small maze. Oh another module by Kusane? Oh its also another arrows module?
-    Yes he has made about 4 of them and I wish to make them all :)
+  id: notArrowsCollection
+  title: Not Modules, Arrows Subdivision
+  author: Kusane, VFlyer
+  description: '[i]If you point him in the right direction, maybe he wouldn''t take
+    an arrow to the knee.[/i]
+
+    This pack contains 4 Not Arrows variants with mod ideas by Kusane.
+
+    Contains Not Yellow Arrows, Not Green Arrows, Not Blue Arrows, Not Red Arrows
 
 
-    HTML: https://ktane.timwi.de/HTML/Red%20Arrows.html
+    Modules and Idea by Kusane
 
-    PDF: https://ktane.timwi.de/PDF/Red%20Arrows.pdf
-
-
-    Red Arrows (redArrowsModule) v1.1.1
-
-    Module and Idea by Kusane
-
-    Mod Implemented by eXish
+    Mod Implemented by VFlyer
 
     Twitch Plays supported'
-  version: 1.1.1
+  version: 1.0.0
   outputFolder: build
   previewImage: {fileID: 2800000, guid: c0b2ae231f11b024fafeeeb9603aa510, type: 3}
