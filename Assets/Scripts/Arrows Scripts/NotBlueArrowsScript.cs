@@ -141,6 +141,8 @@ public class NotBlueArrowsScript : BaseArrowsScript {
 	}
 	void HandleArrowPress(int idx)
     {
+		MAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, arrowButtons[idx].transform);
+		arrowButtons[idx].AddInteractionPunch(0.25f);
 		var lastSecondsDigit = (int)(bombInfo.GetTime() % 10);
 		var lastSNDigit = bombInfo.GetSerialNumberNumbers().LastOrDefault();
 		var lastCurValue = curValue;
@@ -310,6 +312,8 @@ public class NotBlueArrowsScript : BaseArrowsScript {
 	}
 	void HandleSubmit()
     {
+		MAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, screenSelectable.transform);
+		screenSelectable.AddInteractionPunch(0.25f);
 		if (curValue == goalValue)
         {
 			QuickLogFormat("Submitted correct value: {0}. Module disarmed.", curValue);

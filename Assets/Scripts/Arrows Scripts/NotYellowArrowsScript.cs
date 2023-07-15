@@ -164,6 +164,8 @@ public class NotYellowArrowsScript : BaseArrowsScript {
 	}
 	void HandleArrowPress(int idx)
     {
+		MAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, arrowButtons[idx].transform);
+		arrowButtons[idx].AddInteractionPunch(0.25f);
 		var actualDirectionIdx = (idx - idxDirectionOffset + 4) % 4;
 		QuickLogFormat("Pressing {0} moved you {1}.", arrowDirectionNames[idx], cardinalNames[actualDirectionIdx]);
 		var remainingPossibleColors = allPossibleColors.Where(a => a != curForbiddenColor);
