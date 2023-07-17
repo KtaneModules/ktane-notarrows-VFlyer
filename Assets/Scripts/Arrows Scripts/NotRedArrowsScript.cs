@@ -18,14 +18,21 @@ public class NotRedArrowsScript : BaseArrowsScript {
 	}
     protected override void QuickLogFormat(string toLog = "", params object[] misc)
     {
-		Debug.LogFormat("[Not Red Arrows #{0}] {1}", moduleId, string.Format(toLog, misc));
+		QuickLog(string.Format(toLog, misc));
     }
     protected override void QuickLog(string toLog = "")
     {
 		Debug.LogFormat("[Not Red Arrows #{0}] {1}", moduleId, toLog);
     }
-
-    void ResetModule()
+	protected override void QuickLogDebugFormat(string toLog = "", params object[] misc)
+	{
+		QuickLogDebug(string.Format(toLog, misc));
+	}
+	protected override void QuickLogDebug(string toLog = "")
+	{
+		Debug.LogFormat("<Not Red Arrows #{0}> {1}", moduleId, toLog);
+	}
+	void ResetModule()
     {
 		var startingValue = Random.Range(0, 100);
 		var key = startingValue;
@@ -64,7 +71,7 @@ public class NotRedArrowsScript : BaseArrowsScript {
 				key = 50 - key;
 		}
 		QuickLog("JMP CNT_OB");
-		var n = key;
+		var n = Mathf.Abs(key);
 		var cycleCount = 0;
 		while (n > 0)
         {

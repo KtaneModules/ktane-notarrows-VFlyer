@@ -224,7 +224,7 @@ public class NotBlueArrowsScript : BaseArrowsScript {
 				{
 					case 0:
 						var convertedChrArray = valueInString.ToCharArray();
-						for (var x = 0; x < Mathf.Min(2, convertedChrArray.Count(a => char.IsDigit(a))); x++)
+						for (var x = 0; x < Mathf.Min(1, convertedChrArray.Count(a => char.IsDigit(a))); x++)
 							convertedChrArray[convertedChrArray.Length - 1 - x] = '0';
 						if (!int.TryParse(convertedChrArray.Join(""), out curValue))
 							QuickLog("Value is invalid after setting a right-most digit to 0.");
@@ -267,7 +267,7 @@ public class NotBlueArrowsScript : BaseArrowsScript {
 						curValue += 1;break;
 				}
 				break;
-			case 3: // Down
+			case 3: // Left
 				switch (lastSecondsDigit)
 				{
 					case 0:
