@@ -339,9 +339,11 @@ public class NotGreenArrowsScript : BaseArrowsScript {
 	}
     protected override IEnumerator TwitchHandleForcedSolve()
     {
-		arrowButtons[Enumerable.Range(0, 4).Where(a => isArrowSafe.ElementAt(a)).PickRandom()].OnInteract();
-		while (isanimating)
-			yield return true;
+		if (isArrowSafe.Any(a => a))
+			arrowButtons[Enumerable.Range(0, 4).Where(a => isArrowSafe.ElementAt(a)).PickRandom()].OnInteract();
+		else
+			arrowButtons.PickRandom().OnInteract();
+		while (isanimating) yield return true;
     }
 #pragma warning disable 414
 	private readonly string TwitchHelpMessage = "Press the specified arrow button with \"!{0} up/right/down/left\" Words can be substituted as one letter (Ex. right as r) Toggle colorblind mode with \"!{0} colorblind\"";

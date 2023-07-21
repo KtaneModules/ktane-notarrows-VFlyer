@@ -84,13 +84,13 @@ public class NotBlueArrowsScript : BaseArrowsScript {
 			foreach (GameObject pxl in bars[x].storedObjects)
 				pxl.SetActive(false);
 		goalValue = displayedValues[0] * displayedValues[1] + displayedValues[0] * 16 + displayedValues[1];
-		curValue = Random.Range(0, 1000);
+		curValue = Random.Range(100, 1000);
 
 		QuickLogFormat("The top line's representation in decimal is {0}.", displayedValues[0]);
 		QuickLogFormat("The bottom line's representation in decimal is {0}.", displayedValues[1]);
 		QuickLogFormat("The value to reach should be {0}.", goalValue);
 		QuickLogFormat("Starting on {0}.", curValue);
-		
+
 	}
 	IEnumerator TypeText(string text)
     {
@@ -104,7 +104,7 @@ public class NotBlueArrowsScript : BaseArrowsScript {
 		textDisplay.text = text;
 		isanimating = false;
 	}
-	IEnumerator HandleAnimRenderBars()
+	IEnumerator HandleAnimRenderBars(bool enablePressesOnFinish = true)
     {
 		isanimating = true;
 		var topBoolSet = new bool[27];
@@ -131,13 +131,15 @@ public class NotBlueArrowsScript : BaseArrowsScript {
 				pointer += selectedGroupingBot[x] + 1;
 			}
 		}
-		for (var x = 0; x < 27; x++)
+		for (var x = 0; x < 14; x++)
         {
+			yield return new WaitForSeconds(0.1f);
 			bars[0].storedObjects[x].SetActive(topBoolSet[x]);
 			bars[1].storedObjects[x].SetActive(bottomBoolSet[x]);
-			yield return new WaitForSeconds(0.1f);
+			bars[0].storedObjects[26 - x].SetActive(topBoolSet[x]);
+			bars[1].storedObjects[26 - x].SetActive(bottomBoolSet[x]);
 		}
-		isanimating = false;
+		isanimating &= !enablePressesOnFinish;
 	}
 	void HandleArrowPress(int idx)
     {
@@ -332,11 +334,13 @@ public class NotBlueArrowsScript : BaseArrowsScript {
     }
 	IEnumerator HideBars()
     {
-		for (var x = 0; x < 27; x++)
+		for (var x = 0; x < 14; x++)
 		{
+			yield return new WaitForSeconds(0.1f);
 			bars[0].storedObjects[x].SetActive(false);
 			bars[1].storedObjects[x].SetActive(false);
-			yield return new WaitForSeconds(0.1f);
+			bars[0].storedObjects[26 - x].SetActive(false);
+			bars[1].storedObjects[26 - x].SetActive(false);
 		}
 	}
     protected override IEnumerator victory()
@@ -382,7 +386,7 @@ public class NotBlueArrowsScript : BaseArrowsScript {
         }
 	}
 #pragma warning disable 414
-	private readonly string TwitchHelpMessage = "Press the specified arrow button with \"!{0} up/right/down/left\" Words can be substituted as one letter (Ex. right as r) Toggle colorblind mode with \"!{0} colorblind\"";
+	private readonly string TwitchHelpMessage = "Press the specified arrow button with \"!{0} up/right/down/left\" Words can be substituted as one letter (Ex. right as r) To time a specific press, append digits to press when the last seconds digit of the countdown timer is any of those values, I.E. \"!{0} u 5 6 3 1\" Toggle colorblind mode with \"!{0} colorblind\" Submit the displayed value with \"!{0} submit\"";
 #pragma warning restore 414
 	protected override IEnumerator ProcessTwitchCommand(string command)
 	{
@@ -398,27 +402,87 @@ public class NotBlueArrowsScript : BaseArrowsScript {
 			HandleColorblindToggle();
 			yield break;
 		}
-		if (Regex.IsMatch(command, @"^\s*u(p)?\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+		else if (Regex.IsMatch(command, @"^\s*submit\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
 		{
 			yield return null;
-			arrowButtons[0].OnInteract();
+			screenSelectable.OnInteract();
+			if (moduleSolved) { yield return "solve"; }
+			yield break;
 		}
-		else if (Regex.IsMatch(command, @"^\s*d(own)?\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+		var splittedParts = command.Trim().Split();
+		var btnsAllToPress = new List<KMSelectable>();
+		var timeConstraints = new List<List<int>>();
+		List<int> curTimeList = null;
+		foreach (var aPart in splittedParts)
+        {
+			var rgxMatchU = Regex.Match(aPart, @"^\s*u(p)?\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+			var rgxMatchD = Regex.Match(aPart, @"^\s*d(own)?\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+			var rgxMatchL = Regex.Match(aPart, @"^\s*l(eft)?\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+			var rgxMatchR = Regex.Match(aPart, @"^\s*r(ight)?\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+			var rgxMatchDigit = Regex.Match(aPart, @"^\s*[0-9]\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+			var requireNewList = false;
+
+			if (rgxMatchU.Success)
+            {
+				requireNewList = true;
+				btnsAllToPress.Add(arrowButtons[0]);
+            }
+			else if (rgxMatchR.Success)
+            {
+				requireNewList = true;
+				btnsAllToPress.Add(arrowButtons[1]);
+            }
+			else if (rgxMatchD.Success)
+            {
+				requireNewList = true;
+				btnsAllToPress.Add(arrowButtons[2]);
+            }
+			else if (rgxMatchL.Success)
+            {
+				requireNewList = true;
+				btnsAllToPress.Add(arrowButtons[3]);
+            }
+			else if (rgxMatchDigit.Success)
+			{
+				var idxDigitMatch = digits.IndexOf(rgxMatchDigit.Value.First());
+				if (curTimeList == null)
+				{
+					yield return "sendtochaterror You cannot specify when to press without specifying the direction to press first!";
+					yield break;
+				}
+				else if (idxDigitMatch == -1)
+                {
+					yield return string.Format("sendtochaterror The specified command part \"{0}\" does not work when timing presses!", rgxMatchDigit.Value);
+					yield break;
+				}
+				curTimeList.Add(idxDigitMatch);
+			}
+			else
+            {
+				yield return string.Format("sendtochaterror I do not know what \"{0}\" means. Check your command for typos.", aPart);
+				yield break;
+            }
+			if (requireNewList)
+            {
+				if (curTimeList != null)
+					timeConstraints.Add(curTimeList);
+				curTimeList = new List<int>();
+			}
+		}
+		if (curTimeList != null)
+			timeConstraints.Add(curTimeList);
+		if (btnsAllToPress.Any())
 		{
 			yield return null;
-			arrowButtons[2].OnInteract();
+			for (var x = 0; x < btnsAllToPress.Count; x++)
+			{
+				var curTimeConstraints = timeConstraints[x];
+				while (curTimeConstraints.Any() && !curTimeConstraints.Contains((int)bombInfo.GetTime() % 10))
+					yield return string.Format("trycancel A timed button press was canceled after {0} press(es)!", x);
+				btnsAllToPress[x].OnInteract();
+				yield return new WaitForSeconds(0.1f);
+			}
 		}
-		else if (Regex.IsMatch(command, @"^\s*l(eft)?\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
-		{
-			yield return null;
-			arrowButtons[3].OnInteract();
-		}
-		else if (Regex.IsMatch(command, @"^\s*r(ight)?\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
-		{
-			yield return null;
-			arrowButtons[1].OnInteract();
-		}
-		if (moduleSolved) { yield return "solve"; }
 		yield break;
 	}
 }
