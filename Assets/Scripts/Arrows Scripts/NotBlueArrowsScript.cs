@@ -485,4 +485,66 @@ public class NotBlueArrowsScript : BaseArrowsScript {
 		}
 		yield break;
 	}
+    protected override IEnumerator TwitchHandleForcedSolve()
+    {
+        while (curValue != goalValue)
+        {
+			if (curValue < 0)
+            {
+				while ((int)bombInfo.GetTime() % 10 != 5)
+					yield return true;
+				arrowButtons[0].OnInteract();
+				yield return new WaitForSeconds(0.1f);
+				while ((int)bombInfo.GetTime() % 10 != 7)
+					yield return true;
+				arrowButtons[0].OnInteract();
+			}
+			else if (curValue > 999)
+            {
+				while ((int)bombInfo.GetTime() % 10 != 0)
+					yield return true;
+				arrowButtons[0].OnInteract();
+			}
+			else if (curValue / 100 < goalValue / 100)
+            {
+				while ((int)bombInfo.GetTime() % 10 != 0)
+					yield return true;
+				arrowButtons[3].OnInteract();
+			}
+			else if (curValue / 100 > goalValue / 100)
+            {
+				while ((int)bombInfo.GetTime() % 10 != 6)
+					yield return true;
+				arrowButtons[0].OnInteract();
+			}
+			else if (curValue / 10 % 10 < goalValue / 10 % 10)
+            {
+				while ((int)bombInfo.GetTime() % 10 != 1)
+					yield return true;
+				arrowButtons[0].OnInteract();
+			}
+			else if (curValue / 10 % 10 > goalValue / 10 % 10)
+            {
+				while ((int)bombInfo.GetTime() % 10 != 8)
+					yield return true;
+				arrowButtons[1].OnInteract();
+			}
+			else if (curValue % 10 < goalValue % 10)
+            {
+				while ((int)bombInfo.GetTime() % 10 != 9)
+					yield return true;
+				arrowButtons[2].OnInteract();
+			}
+			else if (curValue % 10 > goalValue % 10)
+            {
+				while ((int)bombInfo.GetTime() % 10 != 1)
+					yield return true;
+				arrowButtons[3].OnInteract();
+			}
+			yield return new WaitForSeconds(0.1f);
+		}
+		screenSelectable.OnInteract();
+		while (isanimating)
+			yield return true;
+    }
 }

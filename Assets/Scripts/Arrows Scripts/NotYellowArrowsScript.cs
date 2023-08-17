@@ -233,6 +233,7 @@ public class NotYellowArrowsScript : BaseArrowsScript {
 				}
 				break;
         }
+		var requireReset = false;
 		if (isMoveSafe)
 		{
 			var curIdxPos = curCol * 9 + curRow;
@@ -248,8 +249,11 @@ public class NotYellowArrowsScript : BaseArrowsScript {
 		else
         {
 			modSelf.HandleStrike();
+			requireReset = true;
+			curCol = 4;
+			curRow = 4;
         }
-		ChangeForbiddenArrow(curCol == 4 && curRow == 4);
+		ChangeForbiddenArrow(requireReset);
 		StartCoroutine(HandleTypeText(displayDirections[idxDirectionOffset].ToString()));
 	}
 	IEnumerator HandleRainbowTextAnim()

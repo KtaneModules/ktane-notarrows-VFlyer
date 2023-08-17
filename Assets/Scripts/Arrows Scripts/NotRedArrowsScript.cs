@@ -34,7 +34,7 @@ public class NotRedArrowsScript : BaseArrowsScript {
 	void Start()
 	{
 		moduleId = ++modIDCnt;
-		QuickLog("The module will only log JMP instructions, the initial value displayed, and the expected value on this module.");
+		QuickLog("The module will log JMP instructions, specific values that were modified, the initial value displayed, and the expected value to submit on this module. More logging may be requested.");
 		modSelf.OnActivate += delegate { StartCoroutine(TypeText(currentNumber.ToString("00"))); };
 		//leftIsAdd = Random.value < 0.5f;
 		//downIsAdd = Random.value < 0.5f;
@@ -67,7 +67,7 @@ public class NotRedArrowsScript : BaseArrowsScript {
 	void ResetModule()
     {
 		var startingValue = Random.Range(0, 100);
-		QuickLogFormat("Initial Value: {0}", startingValue);
+		QuickLogFormat("Starting Value: {0}", startingValue);
 		var key = startingValue;
 		var lastDigit = bombInfo.GetSerialNumberNumbers().LastOrDefault();
 		var correctNumber = 11;
@@ -81,13 +81,18 @@ public class NotRedArrowsScript : BaseArrowsScript {
 			{
 				trigger = false;
 				key -= lastDigit;
+				QuickLogFormat("trigger -> false; key -> {0}", key);
 			}
 			else if (key % 10 > lastDigit)
 			{
 				key = (lastDigit + 2) * 7;
+				QuickLogFormat("key -> {0}", key);
 			}
 			else
+			{
 				key += lastDigit;
+				QuickLogFormat("key -> {0}", key);
+			}
         }
 		else
         {
@@ -95,21 +100,27 @@ public class NotRedArrowsScript : BaseArrowsScript {
 			if (key % 10 == lastDigit)
 			{
 				key = (2 * key) % 100;
+				QuickLogFormat("key -> {0}", key);
 			}
 			else if (key % 10 > lastDigit)
 			{
 				key = (lastDigit - 2) * 7;
 				trigger = false;
+				QuickLogFormat("trigger -> false; key -> {0}", key);
 			}
 			else
+			{
 				key = 50 - key;
+				QuickLogFormat("key -> {0}", key);
+			}
 		}
 		QuickLog("JMP CNT_OB");
-		var n = Mathf.Abs(key);
 		var cycleCount = 0;
-		var count = 0;
 		while (tick <= 3)
 		{
+			var n = Mathf.Abs(key);
+			var count = 0;
+			QuickLogFormat("ASSIGN: count -> 0; n -> {0}", n);
 			while (n > 0)
 			{
 				var a = n % 2;
@@ -117,8 +128,10 @@ public class NotRedArrowsScript : BaseArrowsScript {
 					count++;
 				n /= 2;
 				cycleCount++;
+				QuickLogFormat("cycleCount -> {1}; n -> {0}", n, cycleCount);
 			}
 			totalCount += count;
+			QuickLogFormat("totalCount -> {0}", totalCount);
 			if (tick > 2) break;
 			if (cycleCount % 2 == 0)
             {
@@ -127,9 +140,13 @@ public class NotRedArrowsScript : BaseArrowsScript {
 				{
 					trigger = false;
 					key = key * (cycleCount + 1);
+					QuickLogFormat("trigger -> false; key -> {0}", key);
 				}
 				else
+				{
 					key += cycleCount;
+					QuickLogFormat("key -> {0}", key);
+				}
             }
 			else
             {
@@ -137,11 +154,13 @@ public class NotRedArrowsScript : BaseArrowsScript {
 				if (trigger)
 				{
 					key = key + (lastDigit * cycleCount);
+					QuickLogFormat("key -> {0}", key);
 				}
 				else
 				{
 					trigger = false;
 					key++;
+					QuickLogFormat("trigger -> false; key -> {0}", key);
 				}
             }
 			tick++;
@@ -153,6 +172,7 @@ public class NotRedArrowsScript : BaseArrowsScript {
 		if (trigger)
 		{
 			key++;
+			QuickLogFormat("key -> {0}", key);
 			QuickLog("JMP A_TL");
 			var str = (cycleCount * lastDigit) + 3;
 			for (var i = 0; i < x; i++)
@@ -160,27 +180,32 @@ public class NotRedArrowsScript : BaseArrowsScript {
 				if (startingValue % str == 0)
                 {
 					key += str;
+					QuickLogFormat("key -> {0}", key);
 					continue;
                 }
 				str++;
 				key += str - 1;
-            }
+				QuickLogFormat("key -> {0}", key);
+			}
 		}
 		else
 		{
 			key -= 10;
+			QuickLogFormat("key -> {0}", key);
 			QuickLog("JMP A_FL");
 			var afl = (totalCount - lastDigit) + 4;
-			for (var i=0;i<x;i++)
+            for (var i = 0; i < x; i++)
             {
 				if (startingValue % afl == 0)
                 {
 					key += afl;
+					QuickLogFormat("key -> {0}", key);
 					continue;
                 }
 				afl++;
 				key += afl - i;
-            }
+				QuickLogFormat("key -> {0}", key);
+			}
 		}
 		QuickLog("JMP PR_CH");
 		var r = Mathf.Abs(key) / 2;
@@ -213,7 +238,8 @@ public class NotRedArrowsScript : BaseArrowsScript {
             {
 				b += i;
 				key += totalCount % b;
-            }
+				QuickLogFormat("key -> {0}", key);
+			}
 		}
 		else
         {
@@ -224,7 +250,8 @@ public class NotRedArrowsScript : BaseArrowsScript {
             {
 				b += i;
 				key += (x % b);
-            }
+				QuickLogFormat("key -> {0}", key);
+			}
         }
 		QuickLog("JMP FORK_B");
 		if (trigger && flag)
@@ -236,7 +263,8 @@ public class NotRedArrowsScript : BaseArrowsScript {
 				correctNumber = (2 * key) - cycleCount;
 			else
 				correctNumber = key;
-        }
+			QuickLogFormat("correctNumber -> {0}", correctNumber);
+		}
 		else if (trigger)
         {
 			QuickLog("JMP ANS_B");
@@ -246,6 +274,7 @@ public class NotRedArrowsScript : BaseArrowsScript {
 				correctNumber = key + 2;
 			else
 				correctNumber = correctNumber + key;
+			QuickLogFormat("correctNumber -> {0}", correctNumber);
 		}
 		else if (flag)
         {
@@ -256,6 +285,7 @@ public class NotRedArrowsScript : BaseArrowsScript {
 				correctNumber = x + lastDigit;
 			else
 				correctNumber = correctNumber + totalCount;
+			QuickLogFormat("correctNumber -> {0}", correctNumber);
 		}
 		else
         {
@@ -266,11 +296,12 @@ public class NotRedArrowsScript : BaseArrowsScript {
 				correctNumber = key - 21;
 			else
 				correctNumber = correctNumber * lastDigit;
+			QuickLogFormat("correctNumber -> {0}", correctNumber);
 		}
 
 		QuickLog("JMP LAS");
 		correctNumber = Mathf.Abs(correctNumber) % 100;
-
+		QuickLogFormat("correctNumber -> {0}", correctNumber);
 		expectedNumber = correctNumber;
 		currentNumber = startingValue;
 		QuickLogFormat("Expected Value: {0}", expectedNumber);

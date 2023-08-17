@@ -16,6 +16,7 @@
             .footnote { font-size: small; }
             .center-text { text-align: center; }
             .squeeze { margin-top: auto; margin-bottom: auto;}
+            .lineRef { width: 65%;}
         </style>
     </head>
     <body>
@@ -30,14 +31,13 @@
                     <h2>On the Subject of Not Blue Arrows</h2>
                     <p class="flavour-text">I mean, you have a point.</p>
                     <p>On the module are 4 directional buttons, and a small screen in the middle.</p>
-                    <p>If the buttons are not Blue, or the screen is not initally showing a 3-digit number, you're looking at a different module.</p>
-                    <p>To disarm the module, use the four buttons to manipulate the number in various ways to get the number to match the Target Number, and then tap the screen to submit. Submitting an incorrect number will generate a new Target Number.</p>
+                    <p class="squeeze">If the buttons are not Blue, or the screen is not initially showing a 3-digit number, you're looking at a different module.</p>
+                    <p class="squeeze">To disarm the module, use the four buttons to manipulate the number in various ways to get the number to match the Target Number, and then tap the screen to submit. Submitting an incorrect number will generate a new Target Number.</p>
                     <h3>Determining the Target Number</h3>
-                    <p class="squeeze">If all buttons have the same number of true conditions, press any button.</p>
                     <p class="squeeze">There are two lines on the screen – one at the top, and one at the bottom.</p>
                     <p class="squeeze">Use the chart below to convert them into a Hexadecimal digit.</p>
                     <p class="squeeze">The Target Number is equal to the value of the top line multiplied by 0x10*, plus the sum of the bottom line’s value and the product** of both lines.</p>
-                    <!--<img alt="Line Patterns"> -->
+                    <img src="img/Not%20Blue%20Arrows/LineRef.png" alt="Line Patterns" class="centered-img lineRef">
                     <p class="footnote">* 0x10 is the Hexadecimal value 10 (16 in decimal)</p>
                     <p class="footnote">**A product of two or more number is the result after they have all been multiplied together</p>
                 </div>
@@ -54,7 +54,7 @@
                         <tr><th class="small">1s digit<br>of timer</th><th>UP</th><th rowspan="11"></th><th class="small">1s digit<br>of timer</th><th>DOWN</th></tr>
                         <tr><td>0</td><td class="small">Cut the number by half, decimal truncated</td><td>0</td><td>Set the rightmost digit to 0</td></tr>
                         <tr><td>1</td><td>Add 10 to the number</td><td>1</td><td>Reverse the number</td></tr>
-                        <tr><td>2</td><td class="small">Remove thr rightmost digit of the number***</td><td>2</td><td>Subtract 17 from the number</td></tr>
+                        <tr><td>2</td><td class="small">Remove the rightmost digit of the number***</td><td>2</td><td>Subtract 17 from the number</td></tr>
                         <tr><td>3</td><td>Nothing</td><td>3</td><td class="small">Move the leftmost digit to the right***</td></tr>
                         <tr><td>4</td><td class="small">Shift each digit up by 1, carries discarded</td><td>4</td><td>Double the number</td></tr>
                         <tr><td>5</td><td class="small">Increment the number by the last digit of the Serial Number</td><td>5</td><td>Add 27 to the number</td></tr>
@@ -67,7 +67,7 @@
                         <tr><td>0</td><td>Add 100 to the number</td><td>0</td><td class="small">Decrement the number by the last digit of the Serial Number</td></tr>
                         <tr><td>1</td><td>Subtract 1 from the number</td><td>1</td><td>Nothing</td></tr>
                         <tr><td>2</td><td class="small">Shift each digit down by 2, carries discarded</td><td>2</td><td>Add 6 to the number</td></tr>
-                        <tr><td>3</td><td class="small">Add the bottom line’ value to the number</td><td>3</td><td>Double the number</td></tr>
+                        <tr><td>3</td><td class="small">Add the bottom line's value to the number</td><td>3</td><td>Double the number</td></tr>
                         <tr><td>4</td><td>Multiply the number by 5</td><td>4</td><td class="small">Add the top line’s value to the number</td></tr>
                         <tr><td>5</td><td>Add 42 to the number</td><td>5</td><td>Subtract 38 from the number</td></tr>
                         <tr><td>6</td><td>Reverse the number</td><td>6</td><td class="small">Shift each digit up by 2, carries discarded</td></tr>
