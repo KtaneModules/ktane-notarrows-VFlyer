@@ -347,8 +347,6 @@ public class NotBlueArrowsScript : BaseArrowsScript {
     {
 		StartCoroutine(HideBars());
 		isanimating = true;
-		Color lastColor = textDisplay.color;
-		colorblindArrowDisplay.text = "";
 		for (int i = 0; i < 25; i++)
 		{
 			textDisplay.text = textDisplay.text.Select(a => digits.PickRandom()).Join("");

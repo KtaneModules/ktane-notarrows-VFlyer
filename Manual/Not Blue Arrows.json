@@ -1,0 +1,18 @@
+{
+  "Compatibility": "Compatible",
+  "Contributors": {
+    "Developer": [ "VFlyer" ],
+    "Idea": [ "Kusane" ]
+  },
+  "DefuserDifficulty": "Medium",
+  "Description": "Using the top and bottom patterns of the lines, reach the target value from the displayed value by timing arrow presses.",
+  "ExpertDifficulty": "Medium",
+  "ModuleID": "notBlueArrowsModule",
+  "Name": "Not Blue Arrows",
+  "Origin": "Mods",
+  "Published": "2023-08-17",
+  "SortKey": "NOTBLUEARROWS",
+  "SourceUrl": "https://github.com/VFlyer/ktane-notarrows",
+  "SteamID": "3021667266",
+  "Type": "Regular"
+}

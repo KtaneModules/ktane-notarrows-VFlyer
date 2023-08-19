@@ -23,5 +23,13 @@ public class Grid2DFiller : MonoBehaviour {
 			));
 			Debug.Log(resulingGrid.Join(","));
 		}
+		else
+        {
+			var stitchedValues = Enumerable.Range(0, Mathf.Min(gridA.Length, gridB.Length)).Select(a => string.Format("{0}{1}", gridA[a], gridB[a]));
+
+			var missingCombinations = Enumerable.Range(0, squareLength * squareLength).Select(a => a.ToString("00")).Except(stitchedValues);
+			Debug.Log(missingCombinations.Join());
+			Debug.Log(stitchedValues.Join());
+        }
 	}
 }
