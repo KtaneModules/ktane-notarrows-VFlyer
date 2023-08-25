@@ -234,9 +234,13 @@ public class NotBlueArrowsScript : BaseArrowsScript {
 					case 1:
 						if (valueInString.ToList().Count(a => char.IsDigit(a)) > 1)
 						{
-							var startIdx = char.IsDigit(valueInString.ToList().First()) ? 0 : 1;
-							if (!int.TryParse(valueInString.Take(startIdx).Concat(valueInString.Skip(1).Reverse()).Join(""), out curValue))
-								QuickLog("Value was invalid after reversing digits.");
+							var sgnValue = Mathf.Sign(lastCurValue);
+							var absVal = Mathf.Abs(lastCurValue).ToString();
+							int tryConvertedVal;
+							if (int.TryParse(absVal.Reverse().Join(""), out tryConvertedVal))
+								curValue = (int)sgnValue * tryConvertedVal;
+							else
+								QuickLog("Value is invalid after reversing digits.");
 						}
 						break;
 					case 2:
@@ -289,9 +293,13 @@ public class NotBlueArrowsScript : BaseArrowsScript {
 					case 6:
 						if (valueInString.ToList().Count(a => char.IsDigit(a)) > 1)
 						{
-							var startIdx = char.IsDigit(valueInString.ToList().First()) ? 0 : 1;
-							if (!int.TryParse(valueInString.Take(startIdx).Concat(valueInString.Skip(1).Reverse()).Join(""), out curValue))
-								QuickLog("Value was invalid after reversing digits.");
+							var sgnValue = Mathf.Sign(lastCurValue);
+							var absVal = Mathf.Abs(lastCurValue).ToString();
+							int tryConvertedVal;
+							if (int.TryParse(absVal.Reverse().Join(""), out tryConvertedVal))
+								curValue = (int)sgnValue * tryConvertedVal;
+							else
+								QuickLog("Value is invalid after reversing digits.");
 						}
 						break;
 					case 7:

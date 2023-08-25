@@ -1246,7 +1246,7 @@ TextMesh:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1572987217483318}
-  m_Text: 77
+  m_Text: 
   m_OffsetZ: 0
   m_CharacterSize: 144
   m_LineSpacing: 1
@@ -1476,6 +1476,12 @@ MonoBehaviour:
   - {fileID: 114007333053041008}
   textDisplay: {fileID: 102635272061619058}
   colorblindArrowDisplay: {fileID: 102078253250659870}
+  bombInfo: {fileID: 114371827299852580}
+  arrowRenderers:
+  - {fileID: 23347760675767978}
+  - {fileID: 23714095001366914}
+  - {fileID: 23447048517106776}
+  - {fileID: 23182677690616638}
 --- !u!114 &114416763174058464
 MonoBehaviour:
   m_ObjectHideFlags: 1

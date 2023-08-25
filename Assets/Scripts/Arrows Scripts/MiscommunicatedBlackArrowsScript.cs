@@ -26,7 +26,6 @@ public class MiscommunicatedBlackArrowsScript : BaseArrowsScript {
 
     }
 	readonly static string[] arrowDirectionNames = new[] { "Up", "Right", "Down", "Left", };
-	const string digits = "0123456789";
 	readonly static int[][] grid = new int[][] {
 
 		new[] { 30, 68, 03, 59, 95, 42, 21, 14, 86, 77, },
@@ -34,7 +33,7 @@ public class MiscommunicatedBlackArrowsScript : BaseArrowsScript {
 		new[] { 23, 12, 71, 67, 56, 98, 89, 00, 45, 34, },
 		new[] { 57, 46, 35, 24, 13, 09, 90, 88, 72, 61, },
 		new[] { 41, 37, 26, 15, 74, 80, 08, 99, 63, 52, },
-        new[] { 05, 79, 97, 81, 22, 64, 43, 36, 50, 18, },
+		new[] { 05, 79, 97, 81, 22, 64, 43, 36, 50, 18, },
 		new[] { 19, 91, 82, 33, 60, 75, 54, 47, 28, 06, },
 		new[] { 92, 83, 44, 70, 38, 16, 65, 51, 07, 29, },
 		new[] { 84, 55, 10, 48, 01, 27, 76, 62, 39, 93, },
@@ -48,10 +47,10 @@ public class MiscommunicatedBlackArrowsScript : BaseArrowsScript {
 		DisConType.ValueBA, DisConType.BFirstARow };
 
 	int escapeTileIdx, countedCoordIdxes, curCoordIdx, radarCoordIdx, curOptimalDirIdx;
-	List<int> trapTileIdxes;
+	List<int> trapTileIdxes, recommendRadarIdxes;
 	Dictionary<int, int[]> distanceAllNavigatableTiles = new Dictionary<int, int[]>();
 
-	static int modIDCnt;
+	static int modIDCnt = 0;
 	protected override void QuickLogFormat(string toLog = "", params object[] misc)
 	{
 		QuickLog(string.Format(toLog, misc));
@@ -68,6 +67,10 @@ public class MiscommunicatedBlackArrowsScript : BaseArrowsScript {
 	{
 		Debug.LogFormat("<Miscommunicated Black Arrows #{0}> {1}", moduleId, toLog);
 	}
+	string QuickCoord(int idx)
+    {
+		return string.Format("{0}{1}", "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[idx % 10], idx / 10 + 1);
+    }
 	// Use this for initialization
 	void Start () {
 		try
@@ -118,12 +121,13 @@ public class MiscommunicatedBlackArrowsScript : BaseArrowsScript {
 				break;
         }
 		curCoordIdx = curRow * 10 + curCol;
-		QuickLogFormat("Pressed {0} to move to idx {1}...", arrowDirectionNames[idx], curCoordIdx);
+		QuickLogFormat("Pressed {0} to move to {1}...", arrowDirectionNames[idx], QuickCoord(curCoordIdx));
 		var requireRecalc = false;
+		var requireFullRecheck = false;
 		if (trapTileIdxes.Contains(curCoordIdx))
         {
 			MAudio.PlaySoundAtTransform("CyanArrowsFall", transform);
-			QuickLog("The tile in that index is not safe! Resetting.");
+			QuickLogFormat("{0} is trapped! Resetting.", QuickCoord(curCoordIdx));
 			modSelf.HandleStrike();
 			StartCoroutine(AnimateReset(idx));
         }
@@ -135,17 +139,14 @@ public class MiscommunicatedBlackArrowsScript : BaseArrowsScript {
         }
 		else if (curOptimalDirIdx != idx)
         {
-			QuickLog("Deviated from the optimal press. At least you are safe but some recalculations are needed.");
+			QuickLog("Deviated from the recommended press. At least you are safe but some recalculations are needed.");
 			requireRecalc = true;
+			requireFullRecheck = true;
 		}
 		else
-        {
-			var radarRow = radarCoordIdx / 10;
-			var radarCol = radarCoordIdx % 10;
-			requireRecalc = radarRow == curRow || radarCol == curCol || AreIdxesDiagonal(radarCoordIdx, curCoordIdx);
-		}
+			requireRecalc = AreIdxesDiagonal(radarCoordIdx, curCoordIdx);
 		if (requireRecalc)
-			HandleRadar();
+			HandleRadar(requireFullRecheck);
     }
 
 	int ConvertToDisplay(int idxPos, DisConType convertType = DisConType.ARowBCol)
@@ -265,10 +266,10 @@ public class MiscommunicatedBlackArrowsScript : BaseArrowsScript {
 		HandleRadar();
 	}
 
-	IEnumerator ReplaceText(string newText = "")
+	IEnumerator ReplaceText(string newText = "", bool animateAnyway = true)
     {
 		var lastText = textDisplay.text;
-		if (lastText == newText) yield break;
+		if (lastText == newText && !animateAnyway) { isanimating = false; yield break; }
         for (var x = 0; x < lastText.Length; x++)
         {
 			textDisplay.text = lastText.Substring(0, lastText.Length - x);
@@ -325,15 +326,16 @@ public class MiscommunicatedBlackArrowsScript : BaseArrowsScript {
 
 		if (navigatableTiles.Count < 20 && attemptCount < 100) goto retryGen;
 		QuickLogFormat("Generated a navigatable board after {0} attempt(s).", attemptCount);
-		QuickLogDebugFormat("Idx navigatable tiles: {0}", navigatableTiles.Join());
+		QuickLogDebugFormat("Navigatable tiles: {0}", navigatableTiles.Select(a => QuickCoord(a)).Join());
 		QuickLogDebugFormat("Max distance possible: {0}", distanceAllNavigatableTiles.Keys.Max());
 		QuickLog("Trapped Tiles:");
 		for (var x = 0; x < 10; x++)
 			QuickLogFormat(Enumerable.Range(0, 10).Select(a => trapTileIdxes.Contains(10 * x + a) ? 'X' : '-').Join());
+		Debug.Log(Enumerable.Range(0, 10).Select(x => Enumerable.Range(0, 10).Select(a => trapTileIdxes.Contains(10 * x + a) ? 'X' : '-').Join("")).Join("\n"));
 		QuickLogFormat("Port count, modulo 6: {0}", countedCoordIdxes);
-		QuickLogFormat("Starting on idx {0}, value {1} on the table.", curCoordIdx, grid[curCoordIdx / 10][curCoordIdx % 10]);
+		QuickLogFormat("Starting on {0}, value {1} on the table.", QuickCoord(curCoordIdx), grid[curCoordIdx / 10][curCoordIdx % 10]);
 		escapeTileIdx = distanceAllNavigatableTiles.Last().Value.PickRandom();
-		QuickLogFormat("Escape Tile Idx: {0}", escapeTileIdx);
+		QuickLogFormat("Escape Tile: {0}", QuickCoord(escapeTileIdx));
 	}
 	bool AreIdxesDiagonal(int oneIdx, int secondIdx)
     {
@@ -342,51 +344,166 @@ public class MiscommunicatedBlackArrowsScript : BaseArrowsScript {
 		var ndIdxRow = secondIdx / 10;
 		var ndIdxCol = secondIdx % 10;
 
-		for (var x = 1; x < 5; x++)
+		for (var x = 0; x < 5; x++)
 		{
 			if (((stIdxRow + x) % 10 == ndIdxRow || (ndIdxRow + x) % 10 == stIdxRow) &&
-				((stIdxCol + x) % 10 == stIdxCol || (ndIdxCol + x) % 10 == ndIdxCol))
+				((stIdxCol + x) % 10 == ndIdxCol || (ndIdxCol + x) % 10 == stIdxCol))
 				return true;
 		}
 		return false;
     }
-
-	void HandleRadar()
-	{
-		var idxRow = curCoordIdx / 10;
-		var idxCol = curCoordIdx % 10;
-		var forbiddenRadarIdxes = Enumerable.Range(0, 100).Where(a =>
-			(a / 10 + 5) % 10 == idxRow ||
-			(a / 10 + 5) % 10 == idxCol || a == curCoordIdx || AreIdxesDiagonal(a, curCoordIdx)).ToList();
-		countedCoordIdxes = (countedCoordIdxes + 1) % 6;
-	retryRadar:
-		var radarSafe = true;
-		var traversableTileIdxes = new List<int>();
-		var deltasRow = new[] { 0, 1, 9, 0 };
-		var deltasCol = new[] { 1, 0, 0, 9 };
-		var safeIdxDirTravel = Enumerable.Range(0, 4).ToList();
-		var offsettingRow = curCoordIdx / 10;
-		var offsettingCol = curCoordIdx % 10;
-		for (var x = 1; x < 5 && safeIdxDirTravel.Any(); x++)
+	IEnumerable<List<int>> GetPathToDestination()
+    {
+		var curNavigatableTiles = new List<int> { escapeTileIdx };
+		var navigatabledTiles = new List<int>();
+		var distanceEndingTiles = new Dictionary<int, IEnumerable<int>>();
+		for (var d = 0; curNavigatableTiles.Any(); d++)
+		{
+			var nextNavigatableTiles = new List<int>();
+			foreach (var idxTile in curNavigatableTiles)
+			{
+				navigatabledTiles.Add(idxTile);
+				var deltasRow = new[] { 0, 1, 9, 0 };
+				var deltasCol = new[] { 1, 0, 0, 9 };
+				var curRow = idxTile / 10;
+				var curCol = idxTile % 10;
+				for (var x = 0; x < 4; x++)
+				{
+					var checkRow = (curRow + deltasRow[x]) % 10;
+					var checkCol = (curCol + deltasCol[x]) % 10;
+					var newTileIdx = checkRow * 10 + checkCol;
+					if (!(trapTileIdxes.Contains(newTileIdx) ||
+						navigatabledTiles.Contains(newTileIdx) ||
+						nextNavigatableTiles.Contains(newTileIdx)))
+						nextNavigatableTiles.Add(newTileIdx);
+				}
+			}
+			distanceEndingTiles.Add(d, curNavigatableTiles.ToArray());
+			curNavigatableTiles = nextNavigatableTiles;
+			if (nextNavigatableTiles.Contains(curCoordIdx))
+			{
+				distanceEndingTiles.Add(d + 1, curNavigatableTiles.ToArray());
+				break;
+			}
+		}
+		//QuickLogDebugFormat("Idxes arranged by distances: [{0}]", distanceEndingTiles.Select(a => a.Value.Join(",")).Join("];["));
+		var allPathIdxes = new List<List<int>>();
+		var allCurPathIdxes = new List<List<int>> { new List<int> { curCoordIdx } };
+		while (allCurPathIdxes.Any())
         {
-			var lastSafeIdxDirTravel = safeIdxDirTravel.ToList();
-			foreach (var safeDir in lastSafeIdxDirTravel)
+			var nextPathIdxes = new List<List<int>>();
+			foreach (var curPath in allCurPathIdxes)
             {
-				var endingTile = (deltasRow[safeDir] * x + offsettingRow) % 10 * 10 + (deltasCol[safeDir] * x + offsettingCol) % 10;
-				if (trapTileIdxes.Contains(endingTile))
-					safeIdxDirTravel.Remove(safeDir);
+				var lastIdxInPath = curPath.Last();
+				var nextCurDistanceFromLast = distanceEndingTiles.Keys.Last(a => distanceEndingTiles[a].Contains(lastIdxInPath)) - 1;
+				var deltasRow = new[] { 0, 1, 9, 0 };
+				var deltasCol = new[] { 1, 0, 0, 9 };
+				var lastRow = lastIdxInPath / 10;
+				var lastCol = lastIdxInPath % 10;
+				for (var x = 0; x < 4; x++)
+				{
+					var checkRow = (lastRow + deltasRow[x]) % 10;
+					var checkCol = (lastCol + deltasCol[x]) % 10;
+					var newTileIdx = checkRow * 10 + checkCol;
+					if (distanceEndingTiles.ContainsKey(nextCurDistanceFromLast) && distanceEndingTiles[nextCurDistanceFromLast].Contains(newTileIdx))
+					{
+						var resultingNewPath = curPath.Concat(new[] { newTileIdx }).ToList();
+						if (nextCurDistanceFromLast > 0)
+							nextPathIdxes.Add(resultingNewPath);
+						else
+							allPathIdxes.Add(resultingNewPath);
+					}
+				}
+			}
+			allCurPathIdxes = nextPathIdxes;
+		}
+
+		return allPathIdxes;
+	}
+
+
+	void HandleRadar(bool getNewPath = true)
+	{
+		countedCoordIdxes = (countedCoordIdxes + 1) % 6;
+		if (getNewPath)
+        {
+			var allPossiblePaths = GetPathToDestination();
+			QuickLogDebugFormat("Safe paths to escape: [{0}]", allPossiblePaths.Select(a => a.Join(",")).Join("];["));
+			recommendRadarIdxes = allPossiblePaths.PickRandom();
+			QuickLogDebugFormat("Selected recommend radar coordinates: {0}", recommendRadarIdxes.Select(a => QuickCoord(a)).Join(","));
+		}
+		var curRow = curCoordIdx / 10;
+		var curCol = curCoordIdx % 10;
+		var allowedRadars = new List<int>();
+		var allowedDirs = Enumerable.Range(0, 4).ToList();
+		var maxDistancesRadarAll = Enumerable.Repeat(0, 4).ToArray();
+		var dirRadarRefs = new Dictionary<int, List<int>>();
+        for (int i = 0; i < 4; i++)
+			dirRadarRefs.Add(i, new List<int>());
+		for (var x = 1; x <= 4; x++)
+        {
+			var deltasRow = new[] { 9, 0, 1, 0 }; // Arranged to URDL for deltas
+			var deltasCol = new[] { 0, 1, 0, 9 }; // Arranged to URDL for deltas
+            foreach (var n in allowedDirs.ToArray())
+            {
+				var checkRow = (curRow + deltasRow[n] * x) % 10;
+				var checkCol = (curCol + deltasCol[n] * x) % 10;
+				var newTileIdx = checkRow * 10 + checkCol;
+				if (trapTileIdxes.Contains(newTileIdx))
+					allowedDirs.Remove(n);
 				else
-					traversableTileIdxes.Add(endingTile);
-			}				
-        }
-		QuickLogDebugFormat("Safe tiles idx respecting only moving in one direction: {0}", traversableTileIdxes.Join());
-		radarCoordIdx = traversableTileIdxes.PickRandom();
-		radarSafe &= radarCoordIdx != curCoordIdx;
-		if (!radarSafe) goto retryRadar;
-		QuickLogFormat("Selected new radar idx: {0}", radarCoordIdx);
+                {
+					maxDistancesRadarAll[n]++;
+					dirRadarRefs[n].Add(newTileIdx);
+					allowedRadars.Add(newTileIdx);
+				}
+			}
+		}
+		QuickLogDebugFormat("Allowed non-deviating radars from {0}: {1}", QuickCoord(curCoordIdx), allowedRadars.Select(a => QuickCoord(a)).Join(", "));
+		QuickLogDebugFormat("Max distances for moving U,R,D,L: {0}", maxDistancesRadarAll.Join(", "));
+		QuickLogDebugFormat("Idxes in recommended radars: {0}", allowedRadars.Select(a => recommendRadarIdxes.IndexOf(a)).Join(", "));
+		var idxInRecommended = recommendRadarIdxes.IndexOf(curCoordIdx);
+		var dirRef = allowedRadars.ToDictionary(a => a, a => recommendRadarIdxes.IndexOf(a)).Where(a => a.Value > idxInRecommended);
+		var idxMax = dirRef.Max(a => a.Value);
+		var firstSafeRadar = dirRef.Single(a => a.Value >= idxMax).Key;
+		
+		curOptimalDirIdx = dirRadarRefs.Single(a => a.Value.Contains(firstSafeRadar)).Key;
+
+		var deviatedCurCoordIdxes = new List<int>() { firstSafeRadar };
+		var _stSRRowIdx = firstSafeRadar / 10;
+		var _stSRColIdx = firstSafeRadar % 10;
+		for (var x = 1; x < 5 - maxDistancesRadarAll[curOptimalDirIdx]; x++)
+        {
+			var deltasRow = new[] { 9, 9, 1, 1 };
+			var deltasCol = new[] { 9, 1, 1, 9 };
+			// UL, UR, DR, DL
+			var offset1RowIdx = (_stSRRowIdx + deltasRow[curOptimalDirIdx] * x) % 10;
+			var offset1ColIdx = (_stSRColIdx + deltasCol[curOptimalDirIdx] * x) % 10;
+			var offset2RowIdx = (_stSRRowIdx + deltasRow[(curOptimalDirIdx + 1) % 4] * x) % 10;
+			var offset2ColIdx = (_stSRColIdx + deltasCol[(curOptimalDirIdx + 1) % 4] * x) % 10;
+			var hasValueAdded = false;
+
+			if ((offset1RowIdx + 5) % 10 != curRow && (curCol + 5) % 10 != offset1ColIdx)
+			{
+				hasValueAdded = true;
+				deviatedCurCoordIdxes.Add(10 * offset1RowIdx + offset1ColIdx);
+			}
+			if ((offset2RowIdx + 5) % 10 != curRow && (curCol + 5) % 10 != offset2ColIdx)
+			{
+				hasValueAdded = true;
+				deviatedCurCoordIdxes.Add(10 * offset2RowIdx + offset2ColIdx);
+			}
+			if (!hasValueAdded)
+				break;
+		}
+
+		radarCoordIdx = deviatedCurCoordIdxes.PickRandom();
+
+		QuickLogFormat("New position radared: {0}", QuickCoord(radarCoordIdx));
 		QuickLogFormat("Current conversion rule: {0}", numReadTypes[countedCoordIdxes].ToString());
 		var convertedToDisplay = ConvertToDisplay(radarCoordIdx, numReadTypes[countedCoordIdxes]).ToString("00");
 		QuickLogFormat("Its position will be displayed as the following on the module: {0}", convertedToDisplay);
+		QuickLogFormat("Recommended Direction: {0}", arrowDirectionNames[curOptimalDirIdx]);
 		isanimating = true;
 		StartCoroutine(ReplaceText(convertedToDisplay));
     }
@@ -398,7 +515,7 @@ public class MiscommunicatedBlackArrowsScript : BaseArrowsScript {
 	protected override IEnumerator victory()
 	{
 		isanimating = true;
-		for (int i = 0; i < 25; i++)
+		for (int i = 0; i < 50; i++)
 		{
 			int rand2 = Random.Range(0, 10);
 			int rand1 = Random.Range(0, 10);
