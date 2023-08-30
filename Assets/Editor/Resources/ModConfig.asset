@@ -19,7 +19,8 @@ MonoBehaviour:
 
     This pack contains 5 Not Arrows variants, 4 of which stem from mod ideas by Kusane.
 
-    Contains Not Yellow Arrows, Not Green Arrows, Not Blue Arrows, Not Red Arrows
+    Contains Not Yellow Arrows, Not Green Arrows, Not Blue Arrows, Not Red Arrows,
+    Miscommunicated Black Arrows
 
 
     Modules and Idea by Kusane
@@ -27,6 +28,6 @@ MonoBehaviour:
     Mod Implemented by VFlyer
 
     Twitch Plays supported'
-  version: 1.1.0
+  version: 1.2
   outputFolder: build
   previewImage: {fileID: 2800000, guid: c37b966e5ccc0f9459f3d4de29454011, type: 3}
