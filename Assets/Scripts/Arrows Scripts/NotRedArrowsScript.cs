@@ -366,6 +366,9 @@ public class NotRedArrowsScript : BaseArrowsScript {
 	{
 		colorblindArrowDisplay.gameObject.SetActive(colorblindActive);
 	}
+#pragma warning disable 414
+	private readonly string TwitchHelpMessage = "!{0} u/d/l/r [Presses the specified arrow button] | !{0} submit [Presses the screen to submit.] | Direction presses can be chained, for example '!{0} uuddlrl'";
+#pragma warning restore 414
 	protected override IEnumerator ProcessTwitchCommand(string command)
 	{
 		if (Regex.IsMatch(command, @"^\s*submit\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
@@ -375,7 +378,13 @@ public class NotRedArrowsScript : BaseArrowsScript {
 			if (moduleSolved) yield return "solve"; 
 			yield break;
 		}
-
+		else if (Regex.IsMatch(command, @"^\s*colou?rblind\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+		{
+			yield return null;
+			colorblindActive = !colorblindActive;
+			HandleColorblindModeToggle();
+			yield break;
+		}
 		string[] parameters = command.Split(' ');
 		string checks = "";
 		for (int j = 0; j < parameters.Length; j++)

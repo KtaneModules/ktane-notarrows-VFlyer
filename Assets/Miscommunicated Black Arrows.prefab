@@ -1246,7 +1246,7 @@ TextMesh:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1572987217483318}
-  m_Text: 
+  m_Text: ER
   m_OffsetZ: 0
   m_CharacterSize: 144
   m_LineSpacing: 1
@@ -1482,6 +1482,9 @@ MonoBehaviour:
   - {fileID: 23714095001366914}
   - {fileID: 23447048517106776}
   - {fileID: 23182677690616638}
+  setMats:
+  - {fileID: 2100000, guid: 53679f5816d400d4393eff43b9461354, type: 2}
+  - {fileID: 2100000, guid: b6c107eb0b8a9184a9c8cb3ec4bbeeef, type: 2}
 --- !u!114 &114416763174058464
 MonoBehaviour:
   m_ObjectHideFlags: 1

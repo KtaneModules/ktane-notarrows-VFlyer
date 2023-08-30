@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -41,14 +42,16 @@ public class MiscommunicatedBlackArrowsScript : BaseArrowsScript {
 		};
 	public KMBombInfo bombInfo;
 	public MeshRenderer[] arrowRenderers;
+	public Material[] setMats;
 	DisConType[] numReadTypes = new DisConType[] {
 		DisConType.ARowBCol, DisConType.ValueAB,
 		DisConType.BLastACol, DisConType.AColBRow,
 		DisConType.ValueBA, DisConType.BFirstARow };
-
+	bool allowBreatheAnim;
 	int escapeTileIdx, countedCoordIdxes, curCoordIdx, radarCoordIdx, curOptimalDirIdx;
 	List<int> trapTileIdxes, recommendRadarIdxes;
 	Dictionary<int, int[]> distanceAllNavigatableTiles = new Dictionary<int, int[]>();
+	float breatheT = 0;
 
 	static int modIDCnt = 0;
 	protected override void QuickLogFormat(string toLog = "", params object[] misc)
@@ -85,7 +88,7 @@ public class MiscommunicatedBlackArrowsScript : BaseArrowsScript {
 		moduleId = ++modIDCnt;
 		trapTileIdxes = new List<int>();
 		ResetModule();
-
+		textDisplay.text = "";
         for (var x = 0; x < arrowButtons.Length; x++)
         {
 			var y = x;
@@ -252,7 +255,8 @@ public class MiscommunicatedBlackArrowsScript : BaseArrowsScript {
     {
 		var lastColor = textDisplay.color;
 		isanimating = true;
-		for (float x = 0; x < 1f; x += Time.deltaTime / 3f)
+		arrowRenderers[idx].material = setMats[1];
+		for (float x = 0; x < 1f; x += Time.deltaTime / 5f)
         {
 			arrowRenderers[idx].material.color = Color.red * (1f - x) + Color.black * x;
 			textDisplay.color = lastColor * (1f - x);
@@ -262,6 +266,7 @@ public class MiscommunicatedBlackArrowsScript : BaseArrowsScript {
 		HandleColorblindToggle();
 		for (var x = 0; x < arrowRenderers.Length; x++)
 			arrowRenderers[idx].material.color = Color.black;
+		arrowRenderers[idx].material = setMats[0];
 		ResetModule();
 		HandleRadar();
 	}
@@ -331,7 +336,7 @@ public class MiscommunicatedBlackArrowsScript : BaseArrowsScript {
 		QuickLog("Trapped Tiles:");
 		for (var x = 0; x < 10; x++)
 			QuickLogFormat(Enumerable.Range(0, 10).Select(a => trapTileIdxes.Contains(10 * x + a) ? 'X' : '-').Join());
-		Debug.Log(Enumerable.Range(0, 10).Select(x => Enumerable.Range(0, 10).Select(a => trapTileIdxes.Contains(10 * x + a) ? 'X' : '-').Join("")).Join("\n"));
+		//Debug.Log(Enumerable.Range(0, 10).Select(x => Enumerable.Range(0, 10).Select(a => trapTileIdxes.Contains(10 * x + a) ? 'X' : '-').Join("")).Join("\n"));
 		QuickLogFormat("Port count, modulo 6: {0}", countedCoordIdxes);
 		QuickLogFormat("Starting on {0}, value {1} on the table.", QuickCoord(curCoordIdx), grid[curCoordIdx / 10][curCoordIdx % 10]);
 		escapeTileIdx = distanceAllNavigatableTiles.Last().Value.PickRandom();
@@ -505,30 +510,157 @@ public class MiscommunicatedBlackArrowsScript : BaseArrowsScript {
 		QuickLogFormat("Its position will be displayed as the following on the module: {0}", convertedToDisplay);
 		QuickLogFormat("Recommended Direction: {0}", arrowDirectionNames[curOptimalDirIdx]);
 		isanimating = true;
+		allowBreatheAnim = true;
 		StartCoroutine(ReplaceText(convertedToDisplay));
     }
 	void HandleColorblindToggle()
 	{
 		colorblindArrowDisplay.gameObject.SetActive(colorblindActive);
-		textDisplay.color = colorblindActive ? new Color32(255, 255, 255, 255) : new Color32(51, 51, 51, 255);
+		if (!colorblindActive)
+		{
+			textDisplay.color = new Color32(34, 34, 34, 255);
+			breatheT = 0;
+		}
 	}
+	private IEnumerator BreatheArrowFlashes(float delay)
+	{
+		for (int x = 0; x < arrowRenderers.Length; x++)
+		{
+			arrowRenderers[x].material = setMats[1];
+			arrowRenderers[x].material.color = Color.black;
+		}
+		while (isanimating)
+		{
+			for (int x = 0; x < arrowRenderers.Length; x++)
+			{
+				for (float y = 0; y <= 1f; y += Time.deltaTime / delay * 4f)
+				{
+					yield return null;
+					arrowRenderers[x].material.color = Color.white * y;
+				}
+				arrowRenderers[x].material.color = Color.white;
+			}
+			for (int x = 0; x < arrowRenderers.Length; x++)
+			{
+				for (float y = 0; y <= 1f; y += Time.deltaTime / delay * 4f)
+				{
+					yield return null;
+					arrowRenderers[x].material.color = Color.white * (1f - y);
+				}
+				arrowRenderers[x].material.color = Color.black;
+			}
+		}
+		yield return null;
+		for (int x = 0; x < arrowRenderers.Length; x++)
+		{
+			arrowRenderers[x].material = setMats[0];
+		}
+	}
+
+	void Update()
+    {
+		if (colorblindActive && allowBreatheAnim)
+        {
+			breatheT += Time.deltaTime * 0.25f;
+			textDisplay.color = Color.Lerp(new Color32(34, 34, 34, 255), Color.white, 1f - Math.Abs(breatheT - 1f));
+			breatheT += Time.deltaTime * 0.25f;
+			if (breatheT > 2f)
+				breatheT -= 2f;
+		}
+    }
+
 	protected override IEnumerator victory()
 	{
+		Color firstTextColor = textDisplay.color;
+		Color endingColor = new Color32(34, 34, 34, 255);
+		IEnumerator arrowFlasher = BreatheArrowFlashes(2f);
 		isanimating = true;
+		allowBreatheAnim = false;
+		StartCoroutine(arrowFlasher);
 		for (int i = 0; i < 50; i++)
 		{
-			int rand2 = Random.Range(0, 10);
 			int rand1 = Random.Range(0, 10);
-			textDisplay.text = rand2.ToString() + rand1.ToString();
+			int rand2 = Random.Range(0, 10);
+			textDisplay.text = rand1 + "" + rand2;
+			textDisplay.color = Color.white * i / 50f + firstTextColor * (1f - (i / 50f));
 			yield return new WaitForSeconds(0.025f);
 		}
+		textDisplay.color = Color.white;
 		for (int i = 0; i < 50; i++)
 		{
 			int rand2 = Random.Range(0, 10);
 			textDisplay.text = "G" + rand2;
+			textDisplay.color = Color.white * (1.0f - (i / 50f)) + endingColor * (i / 50f);
 			yield return new WaitForSeconds(0.025f);
 		}
+		textDisplay.color = endingColor;
 		textDisplay.text = "GG";
+		isanimating = false;
 		modSelf.HandlePass();
+	}
+#pragma warning disable 414
+	private readonly string TwitchHelpMessage = "\"!{0} u/d/l/r\" [Presses the specified arrow buttons up, down, left or right.] | Direction presses can be chained, for example \"!{0} uuddlrl\" Be aware that the command CAN wait during the animation if mulitple arrows are chained!";
+#pragma warning restore 414
+	protected override IEnumerator ProcessTwitchCommand(string command)
+	{
+		if (moduleSolved && !isanimating)
+		{
+			yield return string.Format("sendtochaterror!h The module is not allowing commands to be processed.");
+			yield break;
+		}
+		if (Regex.IsMatch(command, @"^\s*colou?rblind\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+		{
+			yield return null;
+			colorblindActive = !colorblindActive;
+			HandleColorblindToggle();
+			yield break;
+		}
+		string[] parameters = command.Split(' ');
+		string checks = "";
+		for (int j = 0; j < parameters.Length; j++)
+		{
+			checks += parameters[j];
+		}
+		var buttonsToPress = new List<KMSelectable>();
+		for (int i = 0; i < checks.Length; i++)
+		{
+			if (checks.ElementAt(i).Equals('u') || checks.ElementAt(i).Equals('U'))
+				buttonsToPress.Add(arrowButtons[0]);
+			else if (checks.ElementAt(i).Equals('d') || checks.ElementAt(i).Equals('D'))
+				buttonsToPress.Add(arrowButtons[2]);
+			else if (checks.ElementAt(i).Equals('l') || checks.ElementAt(i).Equals('L'))
+				buttonsToPress.Add(arrowButtons[3]);
+			else if (checks.ElementAt(i).Equals('r') || checks.ElementAt(i).Equals('R'))
+				buttonsToPress.Add(arrowButtons[1]);
+			else
+				yield break;
+		}
+		if (buttonsToPress.Any())
+		{
+			yield return null;
+            for (int i = 0; i < buttonsToPress.Count; i++)
+            {
+                KMSelectable btnPress = buttonsToPress[i];
+                if (isanimating)
+					yield return string.Format("trycancel The rest of the presses have been canceled after {0} presses!", i);
+				btnPress.OnInteract();
+				if (moduleSolved)
+                {
+					yield return "solve";
+					yield break;
+                }
+				yield return new WaitForSeconds(0.1f);
+            }
+		}
+	}
+	protected override IEnumerator TwitchHandleForcedSolve()
+	{
+		while (!moduleSolved)
+        {
+			while (isanimating) yield return true;
+			arrowButtons[curOptimalDirIdx].OnInteract();
+			yield return new WaitForSeconds(0.1f);
+		}
+		while (isanimating) yield return true;
 	}
 }

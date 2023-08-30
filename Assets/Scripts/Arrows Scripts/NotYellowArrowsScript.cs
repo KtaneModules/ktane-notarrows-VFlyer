@@ -212,7 +212,7 @@ public class NotYellowArrowsScript : BaseArrowsScript {
 						QuickLogFormat("Successfully moved to {0}{1}.", "ABCDEFGHI"[curCol], curRow + 1);
 					}
 					else if (vWalls[curRow][curCol].Any())
-						QuickLogFormat("Out of the bridges [{0}] when moving, none were safe to travel south.", vWalls[curRow + 1][curCol].Select(a => a.ToString()).Join(", "));
+						QuickLogFormat("Out of the bridges [{0}] when moving, none were safe to travel south.", vWalls[curRow][curCol].Select(a => a.ToString()).Join(", "));
 					else
 						QuickLogFormat("There are no bridges connected to from the current location to the location directly south.");
 				}
