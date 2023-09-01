@@ -118,6 +118,7 @@ public class NotRedArrowsScript : BaseArrowsScript {
 		var cycleCount = 0;
 		while (tick <= 3)
 		{
+			cycleCount = 0;
 			var n = Mathf.Abs(key);
 			var count = 0;
 			QuickLogFormat("ASSIGN: count -> 0; n -> {0}", n);
@@ -322,16 +323,16 @@ public class NotRedArrowsScript : BaseArrowsScript {
 		arrowButtons[idx].AddInteractionPunch(0.25f);
 		switch (idx)
         {
-			case 0:
-			case 2:
-                {
-					currentNumber += 10 * (downIsAdd ^ idx == 0 ? 1 : -1);
-                }
-				break;
 			case 1:
 			case 3:
+                {
+					currentNumber += 10 * (leftIsAdd ^ idx == 1 ? 1 : -1);
+                }
+				break;
+			case 0:
+			case 2:
 				{
-					var isIncreasing = leftIsAdd ^ idx == 1;
+					var isIncreasing = downIsAdd ^ idx == 0;
 					currentNumber += isIncreasing ? 1 : -1;
 					if (isIncreasing && currentNumber % 10 == 0)
 						currentNumber -= 10;
