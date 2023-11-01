@@ -104,7 +104,7 @@ public class NotRedArrowsScript : BaseArrowsScript {
 			}
 			else if (key % 10 > lastDigit)
 			{
-				key = (lastDigit - 2) * 7;
+				key = (lastDigit - 2) * 5;
 				trigger = false;
 				QuickLogFormat("trigger -> false; key -> {0}", key);
 			}
@@ -174,7 +174,7 @@ public class NotRedArrowsScript : BaseArrowsScript {
 		{
 			key++;
 			QuickLogFormat("key -> {0}", key);
-			QuickLog("JMP A_TL");
+			QuickLog("JMP A_TR");
 			var str = (cycleCount * lastDigit) + 3;
 			for (var i = 0; i < x; i++)
             {
@@ -185,7 +185,7 @@ public class NotRedArrowsScript : BaseArrowsScript {
 					continue;
                 }
 				str++;
-				key += str - 1;
+				key += str - i;
 				QuickLogFormat("key -> {0}", key);
 			}
 		}
