@@ -416,16 +416,32 @@ public class NotRedArrowsScript : BaseArrowsScript {
 		while (currentNumber != expectedNumber)
 		{
 			yield return null;
-			while (currentNumber % 10 != expectedNumber % 10)
-			{
-				arrowButtons[leftIsAdd ? 3 : 1].OnInteract();
-				yield return new WaitForSeconds(0.1f);
-			}
-			while (currentNumber / 10 != expectedNumber / 10)
-			{
+			var curNum10s = currentNumber / 10;
+			var expNum10s = expectedNumber / 10;
+			var curNum1s = currentNumber % 10;
+			var expNum1s = expectedNumber % 10;
+
+			if (curNum1s < expNum1s)
+            {
 				arrowButtons[downIsAdd ? 2 : 0].OnInteract();
 				yield return new WaitForSeconds(0.1f);
-			}
+            }
+			else if (curNum1s > expNum1s)
+            {
+				arrowButtons[downIsAdd ? 0 : 2].OnInteract();
+				yield return new WaitForSeconds(0.1f);
+            }
+			if (curNum10s < expNum10s)
+            {
+				arrowButtons[leftIsAdd ? 3 : 1].OnInteract();
+				yield return new WaitForSeconds(0.1f);
+            }
+			else if (curNum10s > expNum10s)
+            {
+				arrowButtons[leftIsAdd ? 1 : 3].OnInteract();
+				yield return new WaitForSeconds(0.1f);
+            }
+
 		}
 		screenSelectable.OnInteract();
 		while (isanimating) yield return true;
