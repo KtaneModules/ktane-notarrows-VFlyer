@@ -30,7 +30,7 @@ public class MiscommunicatedBlackArrowsScript : BaseArrowsScript {
 	readonly static int[][] grid = new int[][] {
 
 		new[] { 30, 68, 03, 59, 95, 42, 21, 14, 86, 77, },
-		new[] { 75, 04, 69, 96, 87, 53, 32, 25, 11, 40, },
+		new[] { 78, 04, 69, 96, 87, 53, 32, 25, 11, 40, },
 		new[] { 23, 12, 71, 67, 56, 98, 89, 00, 45, 34, },
 		new[] { 57, 46, 35, 24, 13, 09, 90, 88, 72, 61, },
 		new[] { 41, 37, 26, 15, 74, 80, 08, 99, 63, 52, },
