@@ -63,13 +63,28 @@ public class NotRedArrowsScript : BaseArrowsScript {
         }
 		HandleColorblindModeToggle();
 		textDisplay.text = "";
+/*		var forbiddenValues = new List<int[]>();
+        for (var x = 0; x < 100; x++)
+        {
+			for (var y = 0; y < 10; y++)
+				try
+				{
+					ResetModule(x, y);
+				}
+				catch
+                {
+					forbiddenValues.Add(new[] { x, y });
+                }
+        }
+		QuickLogDebugFormat("Exceptions thrown on these conditions: [{0}]", forbiddenValues.Select(a => a.Join()).Join("],["));*/
+
 	}
-	void ResetModule()
+	void ResetModule(int? overrideStartValue = null, int? overrideLastSnd = null)
     {
-		var startingValue = Random.Range(0, 100);
+		var startingValue = overrideStartValue ?? Random.Range(10, 100);
 		QuickLogFormat("Starting Value: {0}", startingValue);
 		var key = startingValue;
-		var lastDigit = bombInfo.GetSerialNumberNumbers().LastOrDefault();
+		var lastDigit = overrideLastSnd ?? bombInfo.GetSerialNumberNumbers().LastOrDefault();
 		var correctNumber = 11;
 		var tick = 0;
 		var trigger = true;
