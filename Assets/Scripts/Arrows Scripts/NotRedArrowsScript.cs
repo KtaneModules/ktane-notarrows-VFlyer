@@ -191,6 +191,7 @@ public class NotRedArrowsScript : BaseArrowsScript {
 			QuickLogFormat("key -> {0}", key);
 			QuickLog("JMP A_TR");
 			var str = (cycleCount * lastDigit) + 3;
+			QuickLogFormat("ASSIGN: atr -> {0}", str);
 			for (var i = 0; i < x; i++)
             {
 				if (startingValue % str == 0)
@@ -201,7 +202,7 @@ public class NotRedArrowsScript : BaseArrowsScript {
                 }
 				str++;
 				key += str - i;
-				QuickLogFormat("key -> {0}", key);
+				QuickLogFormat("atr -> {0}, key -> {1}", str, key);
 			}
 		}
 		else
@@ -210,7 +211,8 @@ public class NotRedArrowsScript : BaseArrowsScript {
 			QuickLogFormat("key -> {0}", key);
 			QuickLog("JMP A_FL");
 			var afl = (totalCount - lastDigit) + 4;
-            for (var i = 0; i < x; i++)
+			QuickLogFormat("ASSIGN: afl -> {0}", afl);
+			for (var i = 0; i < x; i++)
             {
 				if (startingValue % afl == 0)
                 {
@@ -220,7 +222,7 @@ public class NotRedArrowsScript : BaseArrowsScript {
                 }
 				afl++;
 				key += afl - i;
-				QuickLogFormat("key -> {0}", key);
+				QuickLogFormat("afl -> {0}, key -> {1}", afl, key);
 			}
 		}
 		QuickLog("JMP PR_CH");
@@ -233,12 +235,14 @@ public class NotRedArrowsScript : BaseArrowsScript {
         }
 		else
         {
-			for (var q = 2; q <= r; q++)
+			QuickLogFormat("ASSIGN: q -> 2");
+			for (var q = 2; q <= r; q++, QuickLogFormat("q -> {0}", q))
             {
 				if (Mathf.Abs(key) % q == 0)
 				{
 					isPrime = false;
 					flag = true;
+					QuickLog("flag -> true");
 					break;
 				}
             }
@@ -249,24 +253,28 @@ public class NotRedArrowsScript : BaseArrowsScript {
 			QuickLog("JMP KEY_CMP");
 			var b = 1;
 			var v = x % (1 + lastDigit);
+			QuickLogFormat("ASSIGN: b -> 1, v -> {0}", v);
 			v += 5;
+			QuickLogFormat("v -> {0}", v);
 			for (var i = 0; i < v; i++)
             {
 				b += i;
 				key += totalCount % b;
-				QuickLogFormat("key -> {0}", key);
+				QuickLogFormat("b -> {0}, key -> {1}", b, key);
 			}
 		}
 		else
         {
 			var b = 2;
 			var v = totalCount % (lastDigit + 1);
+			QuickLogFormat("ASSIGN: b -> 2, v -> {0}", v);
 			v += 2;
+			QuickLogFormat("v -> {0}", v);
 			for (var i = 0; i < v; i++)
             {
 				b += i;
 				key += (x % b);
-				QuickLogFormat("key -> {0}", key);
+				QuickLogFormat("b -> {0}, key -> {1}", b, key);
 			}
         }
 		QuickLog("JMP FORK_B");

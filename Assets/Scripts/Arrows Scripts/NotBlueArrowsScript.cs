@@ -392,7 +392,7 @@ public class NotBlueArrowsScript : BaseArrowsScript {
         }
 	}
 #pragma warning disable 414
-	private readonly string TwitchHelpMessage = "Press the specified arrow button with \"!{0} up/right/down/left\" Words can be substituted as one letter (Ex. right as r) To time a specific press, append digits to press when the last seconds digit of the countdown timer is any of those values, I.E. \"!{0} u 5 6 3 1\" Toggle colorblind mode with \"!{0} colorblind\" Submit the displayed value with \"!{0} submit\"";
+	private readonly string TwitchHelpMessage = "Press the specified arrow button with \"!{0} up/right/down/left\" Words can be substituted as one letter (Ex. right as r) To time a specific press, append digits to press when the last seconds digit of the countdown timer is any of those values, I.E. \"!{0} u 5 6 3 1\" Arrow presses can be chained and timed together via spaces, I.E. \"!{0} u 6 L 2 R 8\" Toggle colorblind mode with \"!{0} colorblind\" Submit the displayed value with \"!{0} submit\"";
 #pragma warning restore 414
 	protected override IEnumerator ProcessTwitchCommand(string command)
 	{
