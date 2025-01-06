@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 public class NotYellowArrowsScript : BaseArrowsScript {
 	public TextMesh colorblindDisplayTxt;
-	const byte width = 9, height = 9;
+	const byte width = 9, height = 9, nonGraceRequirement = 3, graceReward = 2;
 	WallColor[] allPossibleColors = new WallColor[] { WallColor.Red, WallColor.Yellow, WallColor.Green, WallColor.Blue };
 	IEnumerable<WallColor>[][] hWalls = new[] {
 		new[] {
@@ -90,7 +90,7 @@ public class NotYellowArrowsScript : BaseArrowsScript {
 	readonly static string[] arrowDirectionNames = new[] { "Up", "Right", "Down", "Left", },
 		cardinalNames = new[] { "North", "East", "South", "West", };
 	readonly string displayDirections = "\u25B4\u25B8\u25BE\u25C2";
-	byte curRow = 4, curCol = 4, idxDirectionOffset = 0;
+	byte curRow = 4, curCol = 4, idxDirectionOffset = 0, nonGraceMoves = 0, graceMovesLeft = 0;
 	static int modIDCnt;
 	WallColor curForbiddenColor = WallColor.Invalid;
 	protected override void QuickLogFormat(string toLog = "", params object[] misc)
@@ -151,8 +151,67 @@ public class NotYellowArrowsScript : BaseArrowsScript {
 	}
 	void ChangeForbiddenArrow(bool initialState = false)
     {
-		curForbiddenColor = initialState ? WallColor.Invalid : allPossibleColors.PickRandom();
 		idxDirectionOffset = (byte)Random.Range(0, 4);
+		if (initialState)
+			curForbiddenColor = WallColor.Invalid;
+		else
+		{
+			curForbiddenColor = allPossibleColors.PickRandom();
+			if (nonGraceMoves > 2)
+			{
+				QuickLogDebugFormat("Activating grace due to too many moves away from the target region.");
+				graceMovesLeft = graceReward;
+				nonGraceMoves = 0;
+			}
+			var relevantWalls = new[] {
+				curRow > 0 ? vWalls[curRow - 1][curCol] : Enumerable.Empty<WallColor>(), // North
+				curCol < 8 ? hWalls[curRow][curCol] : Enumerable.Empty<WallColor>(), // East
+				curRow < 8 ? vWalls[curRow][curCol] : Enumerable.Empty<WallColor>(), // South
+				curCol > 0 ? hWalls[curRow][curCol - 1] : Enumerable.Empty<WallColor>() // West
+			};
+			var remainingPossibleColors = allPossibleColors.Where(a => a != curForbiddenColor).ToList();
+			if (!relevantWalls.Any(a => a.Any() && a.All(b => b != curForbiddenColor)))
+			{
+				graceMovesLeft++;
+				QuickLogDebugFormat("There was an unavoidable strike in the current position with {0} as the current forbidden color. Rerolling...", curForbiddenColor.ToString());
+			}
+			if (graceMovesLeft > 0)
+            {
+				remainingPossibleColors.RemoveAll(a => !relevantWalls.Any(wallCombo => wallCombo.Any() && wallCombo.All(c => c != a)));
+				var focusedDirections = new List<int>();
+				if (curCol < 4)
+				{
+					if (curRow < 4)
+						focusedDirections.AddRange(new[] { 0, 3 }); // Top-Left, Prefer moving North or West
+					else if (curRow > 4)
+						focusedDirections.AddRange(new[] { 2, 3 }); // Bottom-Left, Prefer moving South or West
+				}
+				else if (curCol > 4)
+				{
+					if (curRow < 4)
+						focusedDirections.AddRange(new[] { 2, 1 }); // Top-Right, Prefer moving North or East
+					else if (curRow > 4)
+						focusedDirections.AddRange(new[] { 0, 1 }); // Bottom-Right, Prefer moving South or East
+				}
+				var graceUsable = false;
+				var overridePossibleColors = new List<WallColor>();
+				for (var x = 0; x < focusedDirections.Count; x++)
+				{
+					var curFocusedWalls = relevantWalls[focusedDirections[x]];
+					if (curFocusedWalls.Any())
+					{
+						var lastCountGrace = overridePossibleColors.Count;
+						overridePossibleColors.AddRange(allPossibleColors.Where(a => !curFocusedWalls.Contains(a)));
+						graceUsable = lastCountGrace != overridePossibleColors.Count;
+					}
+				}
+				if (graceUsable) {
+					graceMovesLeft--;
+					QuickLogDebugFormat("Grace move possible.");
+				}
+				curForbiddenColor = (overridePossibleColors.Any() ? overridePossibleColors : remainingPossibleColors).PickRandom();
+            }
+		}
 		QuickLogFormat("The arrow is now {1} {0}.", arrowDirectionNames[idxDirectionOffset], initialState ? "White" : curForbiddenColor.ToString());
 		textDisplay.color = initialState ? Color.white : colorRefs[curForbiddenColor.ToString()];
 		colorblindDisplayTxt.text = colorblindActive ? (initialState ? "W" : curForbiddenColor.ToString().Substring(0, 1)) : "";
@@ -167,6 +226,8 @@ public class NotYellowArrowsScript : BaseArrowsScript {
 		MAudio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, arrowButtons[idx].transform);
 		arrowButtons[idx].AddInteractionPunch(0.25f);
 		var actualDirectionIdx = (idx - idxDirectionOffset + 4) % 4;
+		var lastRow = curRow;
+		var lastCol = curCol;
 		QuickLogFormat("Pressing {0} moved you {1}.", arrowDirectionNames[idx], cardinalNames[actualDirectionIdx]);
 		var remainingPossibleColors = allPossibleColors.Where(a => a != curForbiddenColor);
 		var isMoveSafe = true;
@@ -174,60 +235,60 @@ public class NotYellowArrowsScript : BaseArrowsScript {
         {
 			case 0: // North
                 {
-					isMoveSafe = curRow > 0 && vWalls[curRow - 1][curCol].Intersect(remainingPossibleColors).Any();
+					isMoveSafe = curRow > 0 && vWalls[curRow - 1][curCol].Any() && vWalls[curRow - 1][curCol].All(a => remainingPossibleColors.Contains(a));
 					//Debug.Log(vWalls[curRow - 1][curCol].Intersect(remainingPossibleColors).Select(a => a.ToString()).Join());
 					if (isMoveSafe)
 					{
 						curRow--;
 						QuickLogFormat("Successfully moved to {0}{1}.", "ABCDEFGHI"[curCol], curRow + 1);
 					}
-					else if (vWalls[curRow - 1][curCol].Any())
-						QuickLogFormat("Out of the bridges [{0}] when moving, none were safe to travel north.", vWalls[curRow - 1][curCol].Select(a => a.ToString()).Join(", "));
+					else if (curRow > 0 && vWalls[curRow - 1][curCol].Any())
+						QuickLogFormat("The colored bridge consisting of these colors [{0}] contain a forbidden color when moving north.", vWalls[curRow - 1][curCol].Select(a => a.ToString()).Join(", "));
 					else
 						QuickLogFormat("There are no bridges connected to from the current location to the location directly north.");
 				}
 				break;
 			case 1: // East
                 {
-					isMoveSafe = curCol < 8 && hWalls[curRow][curCol].Intersect(remainingPossibleColors).Any();
+					isMoveSafe = curCol < 8 && hWalls[curRow][curCol].Any() && hWalls[curRow][curCol].All(a => remainingPossibleColors.Contains(a));
 					//Debug.Log(hWalls[curRow][curCol].Intersect(remainingPossibleColors).Select(a => a.ToString()).Join());
 					if (isMoveSafe)
 					{
 						curCol++;
 						QuickLogFormat("Successfully moved to {0}{1}.", "ABCDEFGHI"[curCol], curRow + 1);
 					}
-					else if (hWalls[curRow][curCol].Any())
-						QuickLogFormat("Out of the bridges [{0}] when moving, none were safe to travel east.", hWalls[curRow][curCol].Select(a => a.ToString()).Join(", "));
+					else if (curCol < 8 && hWalls[curRow][curCol].Any())
+						QuickLogFormat("The colored bridge consisting of these colors [{0}] contain a forbidden color when moving east.", hWalls[curRow][curCol].Select(a => a.ToString()).Join(", "));
 					else
 						QuickLogFormat("There are no bridges connected to from the current location to the location directly east.");
 				}
 				break;
 			case 2: // South
                 {
-					isMoveSafe = curRow < 8 && vWalls[curRow][curCol].Intersect(remainingPossibleColors).Any();
+					isMoveSafe = curRow < 8 && vWalls[curRow][curCol].Any() && vWalls[curRow][curCol].All(a => remainingPossibleColors.Contains(a));
 					//Debug.Log(vWalls[curRow][curCol].Intersect(remainingPossibleColors).Select(a => a.ToString()).Join());
 					if (isMoveSafe)
 					{
 						curRow++;
 						QuickLogFormat("Successfully moved to {0}{1}.", "ABCDEFGHI"[curCol], curRow + 1);
 					}
-					else if (vWalls[curRow][curCol].Any())
-						QuickLogFormat("Out of the bridges [{0}] when moving, none were safe to travel south.", vWalls[curRow][curCol].Select(a => a.ToString()).Join(", "));
+					else if (curRow < 8 && vWalls[curRow][curCol].Any())
+						QuickLogFormat("The colored bridge consisting of these colors [{0}] contain a forbidden color when moving south.", vWalls[curRow][curCol].Select(a => a.ToString()).Join(", "));
 					else
 						QuickLogFormat("There are no bridges connected to from the current location to the location directly south.");
 				}
 				break;
 			case 3: // West
                 {
-					isMoveSafe = curCol > 0 && hWalls[curRow][curCol - 1].Intersect(remainingPossibleColors).Any();
+					isMoveSafe = curCol > 0 && hWalls[curRow][curCol - 1].Any() && hWalls[curRow][curCol - 1].All(a => remainingPossibleColors.Contains(a));
 					//Debug.Log(hWalls[curRow][curCol - 1].Intersect(remainingPossibleColors).Select(a => a.ToString()).Join());
 					if (isMoveSafe)
 					{
 						curCol--;
 						QuickLogFormat("Successfully moved to {0}{1}.", "ABCDEFGHI"[curCol], curRow + 1);
 					}
-					else if (hWalls[curRow][curCol - 1].Any())
-						QuickLogFormat("Out of the bridges [{0}] when moving, none were safe to travel west.", hWalls[curRow][curCol - 1].Select(a => a.ToString()).Join(", "));
+					else if (curCol > 0 && hWalls[curRow][curCol - 1].Any())
+						QuickLogFormat("The colored bridge consisting of these colors [{0}] contain a forbidden color when traveling west.", hWalls[curRow][curCol - 1].Select(a => a.ToString()).Join(", "));
 					else
 						QuickLogFormat("There are no bridges connected to from the current location to the location directly west.");
 				}
@@ -236,14 +297,24 @@ public class NotYellowArrowsScript : BaseArrowsScript {
 		var requireReset = false;
 		if (isMoveSafe)
 		{
-			var curIdxPos = curCol * 9 + curRow;
+			var curIdxPos = curCol * width + curRow;
 			var idxesEnd = new[] { 0, 8, 72, 80 };
 			if (idxesEnd.Contains(curIdxPos))
-            {
+			{
 				moduleSolved = true;
 				QuickLogFormat("Safely moved to the destination. Module solved.");
 				StartCoroutine(victory());
 				return;
+			}
+			else if (graceMovesLeft <= 0)
+			{
+				// Basically check if the last position is within a quadrant and add 1 if the movement puts them further away from a corner in that quadrant.
+				if (lastRow != 4 && lastCol != 4 &&
+					((lastCol < 4 && curCol > lastCol) ||
+					(lastRow < 4 && curRow > lastRow) ||
+					(lastRow > 4 && curRow < lastRow) ||
+					(lastCol > 4 && curCol < lastCol)))
+				nonGraceMoves++;
 			}
 		}
 		else
@@ -252,6 +323,7 @@ public class NotYellowArrowsScript : BaseArrowsScript {
 			requireReset = true;
 			curCol = 4;
 			curRow = 4;
+			nonGraceMoves = 0;
         }
 		ChangeForbiddenArrow(requireReset);
 		StartCoroutine(HandleTypeText(displayDirections[idxDirectionOffset].ToString()));
@@ -352,4 +424,61 @@ public class NotYellowArrowsScript : BaseArrowsScript {
 		if (moduleSolved) { yield return "solve"; }
 		yield break;
 	}
+    protected override IEnumerator TwitchHandleForcedSolve()
+    {
+		var focusedDirections = new List<int>();
+		while (!moduleSolved)
+        {
+			while (isanimating)
+				yield return true;
+			if (!focusedDirections.Any())
+			{
+				if (curCol < 4)
+				{
+					if (curRow < 4)
+						focusedDirections.AddRange(new[] { 0, 3 }); // Top-Left, Prefer moving North or West
+					else if (curRow > 4)
+						focusedDirections.AddRange(new[] { 2, 3 }); // Bottom-Left, Prefer moving South or West
+				}
+				else if (curCol > 4)
+				{
+					if (curRow < 4)
+						focusedDirections.AddRange(new[] { 2, 1 }); // Top-Right, Prefer moving North or East
+					else if (curRow > 4)
+						focusedDirections.AddRange(new[] { 0, 1 }); // Bottom-Right, Prefer moving South or East
+				}
+			}
+			var movementSuccessful = false;
+			var relevantWalls = new[] {
+				curRow > 0 ? vWalls[curRow - 1][curCol] : Enumerable.Empty<WallColor>(), // North
+				curCol < 8 ? hWalls[curRow][curCol] : Enumerable.Empty<WallColor>(), // East
+				curRow < 8 ? vWalls[curRow][curCol] : Enumerable.Empty<WallColor>(), // South
+				curCol > 0 ? hWalls[curRow][curCol - 1] : Enumerable.Empty<WallColor>() // West
+			};
+			var selectableDirIdxes = new List<int>();
+			foreach (int dirIdx in focusedDirections)
+            {
+				if (!relevantWalls[dirIdx].Contains(curForbiddenColor) && relevantWalls[dirIdx].Any())
+				{
+					selectableDirIdxes.Add((dirIdx + idxDirectionOffset) % 4);
+					movementSuccessful = true;
+				}
+            }
+			if (movementSuccessful) {
+				arrowButtons[selectableDirIdxes.PickRandom()].OnInteract();
+				yield return new WaitForSeconds(0.1f);
+				continue;
+			}
+			var unfocusedDirections = Enumerable.Range(0, 4).Except(focusedDirections).ToList();
+			foreach (int dirIdx in unfocusedDirections)
+			{
+				if (!relevantWalls[dirIdx].Contains(curForbiddenColor) && relevantWalls[dirIdx].Any())
+					selectableDirIdxes.Add((dirIdx + idxDirectionOffset) % 4);
+			}
+			arrowButtons[selectableDirIdxes.PickRandom()].OnInteract();
+			yield return new WaitForSeconds(0.1f);
+		}
+		while (moduleSolved)
+			yield return true;
+    }
 }
